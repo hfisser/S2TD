@@ -1,0 +1,13 @@
+name: null
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pandas
+  - geopandas
+  - xarray
+  - rasterio
+  - pip:
+    - osmpythontools==0.3.2
+prefix: C:\Users\Lenovo\anaconda3\envs\s2_traffic\envs\s2td_env
