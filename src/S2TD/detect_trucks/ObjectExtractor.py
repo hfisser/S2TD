@@ -27,7 +27,7 @@ class ObjectExtractor:
         blue_ys, blue_xs = np.where(predictions_copy == 2)
         out_gpd = gpd.GeoDataFrame({"geometry": []}, crs=detector.meta["crs"])  # output GeoDataFrame
         detection_boxes, directions, direction_descriptions, speeds, mean_probs, sub_size = [], [], [], [], [], 9
-        pb = ProgressBar(len(blue_ys), int(len(blue_ys) * 0.025))
+        pb = ProgressBar(len(blue_ys), int(np.clip(int(len(blue_ys) * 0.025), 1, np.inf)))
         for i, y_blue, x_blue in zip(range(len(blue_ys)), blue_ys, blue_xs):
             pb.update(i)
             if predictions_copy[y_blue, x_blue] == 0:
