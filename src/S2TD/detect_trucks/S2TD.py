@@ -26,6 +26,7 @@ class S2TD:
         This is the interface to the Sentinel-2 TruckDetect (S2TD) method.
         :param dir_out: str directory where to save OSM road polygons.
         """
+        self._check_input(locals(), ["dir_out"], [str])
         self.dir_out = dir_out  # str directory for saving OSM road polygons
         self.io = IO(self)  # class for IO operations
         self.rf = self.io.read_model(MODEL_PATH)  # random forest model
@@ -55,7 +56,8 @@ class S2TD:
         "prediction_raster" is a two-dimensional numpy array of the random forest prediction based upon which moving
         trucks were detected.
         """
-        print("verbose=%s" % str(verbose))
+        print("verbose=%s" % verbose)
+        self._check_input(locals(), ["s2_file", "osm_buffer", "verbose"], [str, float, bool])
         t0 = datetime.now()
         self.verbose = verbose
         self.osm_buffer = osm_buffer
@@ -211,10 +213,46 @@ class S2TD:
             osm_raster[osm_raster == 0] = np.nan
             return osm_raster
 
+    @staticmethod
+    def _check_input(arguments, names, correct_types):
+        """
+        Checks the inputs.
+        :param arguments: dict returned by locals().
+        :return: None
+        """
+        for arg, correct_type in zip(names, correct_types):
+            if isinstance(arguments[arg], correct_type):
+                pass
+            else:
+                error_msg = "'%s' is of type: %s but must be of type: %s" % (arg, type(arguments[arg]), correct_type)
+                if isinstance(correct_type, float):
+                    try:
+                        value = float(arguments[arg])  # ok if casting to float works
+                    except ValueError:
+                        raise ValueError(error_msg)
+                raise ValueError()
+            if arg == "s2_file":
+                if os.path.exists(arguments[arg]):
+                    if not os.path.isfile(arguments[arg]):
+                        raise ValueError("'s2_file' must be a file")
+                else:
+                    raise FileExistsError("'s2_file' does not exist: %s" % arguments[arg])
+            if arg == "dir_out":
+                if os.path.exists(arguments[arg]):
+                    pass
+                else:
+                    raise FileExistsError("'dir_out' does not exist: %s" % arguments[arg])
+                if os.path.isfile(arguments[arg]):
+                    raise ValueError("'dir_out' must be a directory")
+            if arg == "osm_buffer" and arguments[arg] > 40:
+                Warning("'osm_buffer' is %s m. This might cover many non-road pixels. Less than 30 m is recommended"
+                        % arguments["osm_buffer"])
+
 
 if __name__ == "__main__":
     dirs = dict(main="F:\\Masterarbeit\\DLR\\project\\1_truck_detection")
     f = "F:\\Masterarbeit\\DLR\\project\\1_truck_detection\\validation\\data\\s2\\archive\\s2_bands_AS_Dierdorf_VQ_Nord_2018-07-22_2018-07-22_merged.tiff"
+    f = os.path.join(os.path.dirname(os.getcwd()), "test", "resources", "S2_test_data.tif")
     rf_td = S2TD(dirs["main"])
     boxes = rf_td.detect(f, 20.0)
     boxes["detection_boxes"].to_file(os.path.join(dirs["main"], "test.gpkg"), driver="GPKG")
