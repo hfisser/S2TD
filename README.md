@@ -1,4 +1,4 @@
-# S2TD
+# S2TD - Detect moving trucks using Sentinel-2 data
 
 A method for automatically detecting moving trucks in Sentinel-2 remote sensing data.
 
